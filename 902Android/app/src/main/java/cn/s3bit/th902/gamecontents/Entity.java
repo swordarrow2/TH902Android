@@ -13,52 +13,25 @@ public class Entity {
 			public int compare(Entity o1, Entity o2) {
 				if (o1 == o2)
 					return 0;
-				if (o1.updateOrder != o2.updateOrder)
-					return Integer.compare(o1.updateOrder, o2.updateOrder);
-				return Long.compare(o1.identity, o2.identity);
+				return -1;
 			}
 		});
 	public static LinkedBlockingQueue<Runnable> postUpdate = new LinkedBlockingQueue<>();
 
-	private TreeMap<Class<?>, Component> mComponents;
-	public int updateOrder;
-	public final long identity;
-	public static long identitySender = 0;
-	private LinkedBlockingQueue<Class<?>> toDel;
-	private Entity() {
-		identity = ++identitySender;
+	public TreeMap<Class<?>, Component> mComponents;
+	public LinkedBlockingQueue<Class<?>> toDel=new LinkedBlockingQueue<>();
+	public Entity() {
+
 	}
 
 	public static Entity Create() {
-		return Create(0);
-	}
-
-	public static Entity Create(int updateOrder) {
-		final Entity entity = new Entity();
-		entity.mComponents = new TreeMap<>(new Comparator<Class<?>>() {
-
-				@Override
-				public int compare(Class<?> o1, Class<?> o2) {
-					return o1.getName().compareTo(o2.getName());
-				}
-			});
-		entity.toDel = new LinkedBlockingQueue<>();
-		entity.updateOrder = updateOrder;
-		postUpdate.add(new Runnable(){
-
-				@Override
-				public void run() {
-					instances.add(entity);
-				}
-			});
-		return entity;
+		return ObjectPool.getEntity();
 	}
 
 	public void Update() {
 		Object[] entries =  mComponents.entrySet().toArray();
 		for (Object obj : entries) {
-			@SuppressWarnings("unchecked")
-				Entry<Class<?>, Component> entry = (Entry<Class<?>, Component>) obj;
+			Entry<Class<?>, Component> entry = (Entry<Class<?>, Component>) obj;
 			entry.getValue().Update();
 			if (entry.getValue().isDead()) {
 				toDel.add(entry.getKey());
@@ -72,7 +45,6 @@ public class Entity {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	public <T> T GetComponent(Class<T> type) {
 		T c = (T) mComponents.get(type);
 		if (c != null)
@@ -86,23 +58,24 @@ public class Entity {
 	}
 
 	public void AddComponent(Component component) {
-		if (component == null)
-			throw new NullPointerException();
 		Class<?> type = component.getClass();
-		if (mComponents.containsKey(type))
-			throw new IllegalArgumentException();
+		if (mComponents.containsKey(type)) {
+			throw new IllegalArgumentException(component.getClass().getName() + " already exists");
+		}
 		mComponents.put(type, component);
 		component.Initialize(this);
 	}
 
 	public void Destroy() {
 		Component[] components = mComponents.values().toArray(new Component[mComponents.values().size()]);
-		for (Component component : components)
+		for (Component component : components) {
 			if (!component.isDead()) {
 				component.Kill();
 			}
+		}
 		mComponents.clear();
 		instances.remove(this);
+		ObjectPool.recycle(this);
 	}
 
 	public static void Reset() {

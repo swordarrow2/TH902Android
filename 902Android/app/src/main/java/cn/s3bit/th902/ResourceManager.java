@@ -14,11 +14,6 @@ public final class ResourceManager {
 	public static BitmapFont msyh, fontSpellName;
 	public static void Load() {
 		
-		String extRoot = Gdx.files.getExternalStoragePath();
-		int ii=2;
-		if(ii==1){
-			throw new RuntimeException(extRoot);
-		}
 		msyh = new BitmapFont(Gdx.files.external("resources/font/msyh.fnt"));
 		fontSpellName = new BitmapFont(Gdx.files.external("resources/font/SpellNames.fnt"));
 		textures.clear();
@@ -29,7 +24,6 @@ public final class ResourceManager {
 		AddTexture("CharacterSelect", "resources/CharacterSelect.jpg", FileType.External);
 		AddTexture("DifficultySelect", "resources/DifficultySelect.jpg", FileType.External);
 		for (int i = 0; i <= 246; i++) {
-
 			barrages.add(new Texture(Gdx.files.external("resources/Barrages/proj" + i + ".png")));
 		}
 		for (int i = 0; i <= 0; i++) {

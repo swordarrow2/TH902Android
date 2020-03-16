@@ -75,7 +75,7 @@ public class FightScreen extends ScreenAdapter {
 			RandomPool.get(i).random.setSeed(seed);
 		}
 		MusicManager.StopBGM();
-		Entity player = Entity.Create(-100);
+		Entity player = Entity.Create();
 		Entity fightScreen = Entity.Create();
 		Entity difficulty = Entity.Create();
 		Entity score = Entity.Create();
